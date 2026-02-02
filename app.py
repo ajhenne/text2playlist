@@ -18,13 +18,19 @@ if "p" in st.query_params:
     playlist_url = link_from_permalink(permalink)
 
     if playlist_url:
-        st.markdown(
-            f'<meta http-equiv="refresh" content="0;url={playlist_url}">',
-            unsafe_allow_html=True
-        )
-        st.toast(":green[**SUCCESS:**] permalink found")
-        sleep(5)
-        # st.stop()
+
+        st.toast(":green[**SUCCESS:**] Redirecting to YouTube...")
+
+        js = f"""
+        <script>
+            window.location.href = "{playlist_url}";
+        </script>
+        """
+        st.components.v1.html(js, height=0)
+        
+        st.markdown(f"If you are not redirected automatically, [click here]({playlist_url}).")
+        
+        st.stop()
     else:
         st.toast(":red[**ERROR**:] Permalink not found or has expired")
 
