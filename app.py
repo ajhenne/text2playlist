@@ -24,10 +24,13 @@ if "p" in st.query_params:
         st.toast(":green[**SUCCESS:**] Redirecting to YouTube...")
 
         def nav_to(url):
-            js = f'window.open("{url}", "_blank").then(r => window.parent.location.href);'
-            st_javascript(js)
+            nav_script = """
+                <meta http-equiv="refresh" content="0; url='%s'">
+            """ % (url)
+            st.write(nav_script, unsafe_allow_html=True)
 
         nav_to(playlist_url)
+        
         st.markdown(f"If you are not redirected automatically, [click here]({playlist_url}).")
         
         st.stop()
