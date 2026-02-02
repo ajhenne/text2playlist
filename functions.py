@@ -1,5 +1,6 @@
 import re
 import requests
+import streamlit as st
 
 def extract_urls(text):
     """Get URLs from a block of text."""
@@ -12,48 +13,51 @@ def extract_urls(text):
     
     return yt_links, other_links
 
+@st.cache_data
+def odesli_search(url):
+    """Find YT link using Odesli API."""
+    try:
+        response = requests.get(f"https://api.song.link/v1-alpha.1/links?url={url}")
+        
+        if response.status_code == 200:
+            print('yes')
+            data = response.json()
+            yt_data = data.get('linksByPlatform', {}).get('youtube')
 
+            if yt_data:
+                return yt_data.get('url')
+    except:
+        return 
+    
+
+def url_checker(url):
+    """Try to avoid links that aren't a specific song."""
+    u = url.lower()
+
+    # quick guard clase - need to manually verify links to add more services
+    music_services = ["youtube.com", "youtu.be", "spotify.com", "soundcloud.com", "music.apple.com"]
+    if not any(service in u for service in music_services):
+        return False
+
+    if "youtube.com/playlist" in u:
+        return False
+    
+    if "music.apple.com" in u and ("album" in u and "?i=" not in u): #album ok if it points to track
+        return False 
+    
+    if "spotify.com" in u and "track" not in u:
+        return False
+    
+    if "soundcloud.com" in u and ("sets" in u and "?in=" not in u): # sets(album) ok if it points to track
+        return False
+
+    return True
+    
+    
+@st.cache_data
 def convert_to_youtube(link_list):
     """Converts links from other sources into a YouTube link."""
-
-    def odesli_search(url):
-        """Find YT link using Odesli API."""
-        try:
-            response = requests.get(f"https://api.song.link/v1-alpha.1/links?url={url}")
             
-            if response.status_code == 200:
-                print('yes')
-                data = response.json()
-                yt_data = data.get('linksByPlatform', {}).get('youtube')
-
-                if yt_data:
-                    return yt_data.get('url')
-        except:
-            return 
-        
-    def url_checker(url):
-        """Try to avoid links that aren't a specific song."""
-        u = url.lower()
-
-        # quick guard clase - need to manually verify links to add more services
-        music_services = ["youtube.com", "youtu.be", "spotify.com", "soundcloud.com", "music.apple.com"]
-        if not any(service in u for service in music_services):
-            return False
-
-        if "youtube.com/playlist" in u:
-            return False
-        
-        if "music.apple.com" in u and ("album" in u and "?i=" not in u): #album ok if it points to track
-            return False 
-        
-        if "spotify.com" in u and "track" not in u:
-            return False
-        
-        if "soundcloud.com" in u and ("sets" in u and "?in=" not in u): # sets(album) ok if it points to track
-            return False
-
-        return True
-    
     youtube_links = []
 
     for url in link_list:
