@@ -3,8 +3,7 @@ import pandas as pd
 import secrets
 import string
 
-from st_copy import copy_button
-from streamlit_gsheets import GSheetsConnection
+# from st_copy import copy_button
 from functions import link_from_permalink, save_permalink
 from functions import extract_urls, convert_to_youtube, generate_playlist_link
 from functions import custom_css, footer_css
