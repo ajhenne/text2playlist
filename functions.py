@@ -1,6 +1,9 @@
 import re
 import requests
+import pandas as pd
 import streamlit as st
+
+from streamlit_gsheets import GSheetsConnection
 
 def extract_urls(text):
     """Get URLs from a block of text."""
@@ -20,7 +23,6 @@ def odesli_search(url):
         response = requests.get(f"https://api.song.link/v1-alpha.1/links?url={url}")
         
         if response.status_code == 200:
-            print('yes')
             data = response.json()
             yt_data = data.get('linksByPlatform', {}).get('youtube')
 
@@ -82,6 +84,34 @@ def generate_playlist_link(link_list):
 
     return f"https://www.youtube.com/watch_videos?video_ids={','.join(video_ids)}"
 
+
+###############################################################################
+
+def save_permalink(permalink, yt_link):
+    conn = st.connection('gsheets', type=GSheetsConnection)
+    df = conn.read(ttl=0)
+
+    if permalink in df['permalink'].values:
+        return False
+    
+    new_row = pd.DataFrame([{"permalink": permalink, "yt_link": yt_link}])
+    updated_df = pd.concat([df, new_row], ignore_index=True)
+
+    conn.update(data=updated_df)
+    return True
+
+
+def link_from_permalink(permalink):
+    conn = st.connection('gsheets', type=GSheetsConnection)
+    df = conn.read(ttl="10m")
+
+    match = df[df['permalink'] == permalink]
+    if match.empty:
+        return None
+    return match.iloc[0]['yt_link']
+
+
+###############################################################################
 
 custom_css = """
 <style>
