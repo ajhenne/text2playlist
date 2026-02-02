@@ -26,6 +26,8 @@ if "p" in st.query_params:
             js = f'window.open("{url}", "_blank").then(r => window.parent.location.href);'
             st_javascript(js)
 
+        nav_to(playlist_url)
+
         st.markdown(f"If you are not redirected automatically, [click here]({playlist_url}).")
         
         st.stop()
