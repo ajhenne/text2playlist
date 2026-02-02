@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import secrets
 import string
-
+from time import sleep
 # from st_copy import copy_button
 from functions import link_from_permalink, save_permalink
 from functions import extract_urls, convert_to_youtube, generate_playlist_link
@@ -23,6 +23,7 @@ if "p" in st.query_params:
             unsafe_allow_html=True
         )
         st.toast(":green[**SUCCESS:**] permalink found")
+        sleep(5)
         st.stop()
     else:
         st.toast(":red[**ERROR**:] Permalink not found or has expired")
