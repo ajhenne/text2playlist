@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import secrets
 import string
-from time import sleep
+import webbrowser
+
 # from st_copy import copy_button
 from functions import link_from_permalink, save_permalink
 from functions import extract_urls, convert_to_youtube, generate_playlist_link
@@ -21,13 +22,8 @@ if "p" in st.query_params:
 
         st.toast(":green[**SUCCESS:**] Redirecting to YouTube...")
 
-        js = f"""
-        <script>
-            window.location.href = "{playlist_url}";
-        </script>
-        """
-        st.components.v1.html(js, height=0)
-        
+        webbrowser.open(playlist_url, new=0)
+
         st.markdown(f"If you are not redirected automatically, [click here]({playlist_url}).")
         
         st.stop()
