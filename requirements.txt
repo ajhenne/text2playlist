@@ -1,3 +1,4 @@
 streamlit
+streamlit-javascript
 st-gsheets-connection
 pandas
