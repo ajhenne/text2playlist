@@ -1,21 +1,21 @@
 # chat2playlist
 
-https://chat2playlist.streamlit.app
+[chat2playlist.streamlit.app](https://chat2playlist.streamlit.app)
 
-A tool to convert music links within txt files into a playable YouTube playlist. Great for converting chat logs from groups in WhatsApp instantly into a shareable link.
+A tool to convert music links within text files into a playable YouTube playlist. Designed specifically for converting all the music shared in a messaging chat log (e.g. music sharing group chats), but in principle works for any text file.
 
+## Features 
 - Simple regex to find all links from an inputted `.txt` file.
-- Supports direct YouTube or YouTube music links, (*planned*) or searches YouTube for the best match from other links (e.g. Spotify, SoundCloud).
+- Supports direct YouTube or YouTube music links, or uses [Odesli](https://odesli.co) to search for the equivalent YouTube link, currently supporting:
+    - Spotify
+    - SoundCloud
+    - Apple Music
 - Instant generation of a URL that contains all the music into a playable queue - no API or account linking required.
 - Web interface for easy file upload.
 - (*planned*) Create a nicer looking shortened permalink.
 
-## Officially Supports
+## Support
 
-Chat log source:
-- WhatsApp
+**Other music services:** I'm happy to support other music services, it just requires me checking the URLs - raise a GitHub issue.
 
-Supports links from:
-- YouTube or YouTube Music
-
-In principle these are the specific cases that are directly supported, butthis should work for the exported logs from any similar messaging service, or more generally any txt file. If you encounter any quirks from other sources, please create a GitHub issue and I can account for this.
+**Text file not working:** This should work for any text file, but there may be specific quirks that cause failure. Raise a GitHub issue and I can account for this.
