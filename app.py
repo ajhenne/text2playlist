@@ -11,7 +11,6 @@ from functions import custom_css, footer_css
 if "processed_data" not in st.session_state:
     st.session_state.processed_data = None
 
-print('print test')
 ## Permalink handling.
 if "p" in st.query_params:
     permalink = st.query_params['p']
@@ -19,16 +18,13 @@ if "p" in st.query_params:
     playlist_url = link_from_permalink(permalink)
 
     if playlist_url:
-        print('before link')
         st.markdown(
             f'<meta http-equiv="refresh" content="0;url={playlist_url}">',
             unsafe_allow_html=True
         )
-        print('after link')
         st.toast(":green[**SUCCESS:**] permalink found")
-        print('reached toast')
         sleep(5)
-        st.stop()
+        # st.stop()
     else:
         st.toast(":red[**ERROR**:] Permalink not found or has expired")
 
