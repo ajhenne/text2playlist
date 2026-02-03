@@ -106,8 +106,10 @@ def link_from_permalink(permalink):
     df = conn.read(ttl="10m")
 
     match = df[df['permalink'] == permalink]
+
     if match.empty:
         return None
+    
     return match.iloc[0]['yt_link']
 
 
@@ -163,5 +165,6 @@ footer_css = """
 <div class="footer">
     <a href="https://github.com/ajhenne/chat2playlist" target="_blank">GitHub</a>
     <a href="https://www.linkedin.com/in/ajhennessy/" target="_blank">LinkedIn</a>
+    <a href="./?v=privacy" target="_blank">Privacy Statement</a>
 </div>
 """
