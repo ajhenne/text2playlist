@@ -1,6 +1,6 @@
 import streamlit as st
 
-from functions import link_from_permalink, save_permalink
+from functions.general import link_from_permalink
 
 def page_permalink(playlist_id):
 

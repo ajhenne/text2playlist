@@ -1,8 +1,8 @@
 import streamlit as st
 import secrets
 import string
-from functions import extract_urls, convert_to_youtube, generate_playlist_link
-from functions import save_permalink
+from functions.general import extract_urls, convert_to_youtube, generate_playlist_link
+from functions.general import save_permalink
 
 
 def page_chat2playlist():
@@ -12,9 +12,7 @@ def page_chat2playlist():
     st.text("Extract music links from a large textfile to easily make into a playlist. Can be output directly into a YouTube playlist, as a list to import into Spotify, or as a list of song and artist names.")
 
     output_format = st.selectbox("Select output", options=["YouTube Playlist", "Spotify", "Song - Artist"], width=300)
-
     uploaded_file = st.file_uploader("upload_file", type='txt', label_visibility="collapsed")
-
 
     if uploaded_file:
 
