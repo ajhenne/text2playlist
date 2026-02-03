@@ -1,6 +1,6 @@
 # Custom
 test_data/
-
+.DS_Store
 
 ## Python standard .gitignore
 
