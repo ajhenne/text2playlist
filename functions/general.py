@@ -2,38 +2,66 @@ import re
 import requests
 import pandas as pd
 import streamlit as st
+import base64
+
+from concurrent.futures import ThreadPoolExecutor
 
 from streamlit_gsheets import GSheetsConnection
 
-def extract_urls(text):
-    """Get URLs from a block of text."""
+###############################################################################
+### ICONS
+
+def get_icons_html():
+    """Get HTML from svgs for coloured and greyed icons."""
+    
+    output_html = []
+    
+    for svc in ('youtube', 'spotify', 'soundcloud'):
+        with open(f'assets/{svc}.svg', 'rb') as f:
+            base64_svg = base64.b64encode(f.read()).decode("utf-8")
+            coloured = f'<img src="data:image/svg+xml;base64,{base64_svg}" width="25">'
+            
+        with open(f'assets/{svc}_grey.svg', 'rb') as f:
+            base64_svg = base64.b64encode(f.read()).decode("utf-8")
+            grey = f'<img src="data:image/svg+xml;base64,{base64_svg}" width="25">'
+        
+        output_html.append([coloured, grey])
+        
+    return output_html
+
+
+def make_table_links(link_youtube, link_spotify, icons):
+    """Create table row of links for a song."""
+    
+    icon_youtube, icon_spotify, _ = icons
+     
+    if link_youtube:
+        output_youtube = f'<a href="{link_youtube}" target="_blank">{icon_youtube[0]}</a>'
+    else:
+        output_youtube = icon_youtube[1]
+        
+    if link_spotify:
+        output_spotify = f'<a href="{link_spotify}" target="_blank">{icon_spotify[0]}</a>'
+    else:
+        output_spotify = icon_spotify[1]
+        
+    return f'{output_youtube}&nbsp;{output_spotify}'
+    
+
+###############################################################################
+### LINK PROCESSING
+
+def get_link_list(text):
+    """Get URLs from text and output in specified format."""
 
     url_pattern = r'(https?://[^\s]+)'
-    links = re.findall(url_pattern, text)
+    link_list = re.findall(url_pattern, text)    
 
-    yt_links = [url for url in links if ("youtube.com/watch" in url) or ("youtu.be" in url)]
-    other_links = [url for url in links if url not in yt_links]
-    
-    return yt_links, other_links
+    return link_list
 
-@st.cache_data
-def odesli_search(url):
-    """Find YT link using Odesli API."""
-    try:
-        response = requests.get(f"https://api.song.link/v1-alpha.1/links?url={url}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            yt_data = data.get('linksByPlatform', {}).get('youtube')
-
-            if yt_data:
-                return yt_data.get('url')
-    except:
-        return 
-    
 
 def url_checker(url):
-    """Try to avoid links that aren't a specific song."""
+    """Filter out links from unknown services, or those that aren't song links."""
     u = url.lower()
 
     # quick guard clase - need to manually verify links to add more services
@@ -54,24 +82,64 @@ def url_checker(url):
         return False
 
     return True
+
+
+# @st.cache_data
+def resolve_tracks(link_list):
+    """Get a dataframe of results for all inputted links."""
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        results = list(executor.map(odesli_search, link_list))
+        
+    valid_results = [r for r in results if r is not None]
+
+    return pd.DataFrame(valid_results)
+
+
+# @st.cache_data
+def odesli_search(url):
+    """Find metadata using Odesli API."""
+
+    try:
+        response = requests.get(f"https://api.song.link/v1-alpha.1/links?url={url}")
+        if response.status_code != 200:
+            return None
+        
+        data = response.json()
+        
+        entities = data.get('entitiesByUniqueId', {})
+        links = data.get('linksByPlatform', {})
+        
+        title = None
+        artist = None
+        
+        spotify_key = next((k for k in entities if k.startswith("SPOTIFY_SONG")), None)
+        soundcloud_key = next((k for k in entities if k.startswith("SOUNDCLOUD_SONG")), None)
+        youtube_key = next((k for k in entities if k.startswith("YOUTUBE_VIDEO")), None)
+                
+        # prefer spotify -> soundcloud -> youtube for name & artist metadata
+        for key in [spotify_key, soundcloud_key, youtube_key]:
+            if key and not title:
+                title = entities[key].get('title')
+            if key and not artist:
+                artist = entities[key].get('artistName')
+                
+        link_youtube = links.get('youtube', {}).get('url')
+        link_spotify = links.get('spotify', {}).get('url')
+        # youtubeMusic, soundcloud
+        
+        return {'title': title, 'artist': artist,
+                'link_youtube': link_youtube,
+                'link_spotify': link_spotify}
     
+    except: 
+        return 
     
-@st.cache_data
-def convert_to_youtube(link_list):
-    """Converts links from other sources into a YouTube link."""
-            
-    youtube_links = []
 
-    for url in link_list:
-        if url_checker(url):
-            youtube_url = odesli_search(url)
-            if youtube_url is not None:
-                youtube_links.append(youtube_url)
+###############################################################################
 
-    return youtube_links
-
-
-def generate_playlist_link(link_list):
+# @st.cache_data
+def generate_youtube_link(link_list):
     """Convert a list of links into a YouTube temporary playlist link."""
     video_ids = []
 
@@ -83,6 +151,19 @@ def generate_playlist_link(link_list):
             video_ids.append(url.split("youtu.be/")[1].split("?")[0])
 
     return f"https://www.youtube.com/watch_videos?video_ids={','.join(video_ids)}"
+
+
+@st.dialog(":primary[Spotify]", width="medium")
+def display_spotify_list(link_list):
+    
+    st.text("Copy this list and open the Spotify Desktop app or Spotify Web. Make a new playlist, or go to an existing playlist, and click paste (Ctrl+V or Cmd+V) to paste the tracks int othe playlist.")
+    display_list = "\n".join(link_list.dropna().astype(str))
+    st.code(display_list, language=None, width='stretch', height=300)
+    
+    return
+
+
+
 
 
 ###############################################################################
@@ -111,60 +192,3 @@ def link_from_permalink(permalink):
         return None
     
     return match.iloc[0]['yt_link']
-
-
-###############################################################################
-
-custom_css = """
-<style>
-.stMainBlockContainer{
-    padding-top: 50px;
-}
-
-.st-emotion-cache-198znwi hr {
-    margin-top: -5px;
-    margin-bottom: 25px;
-    }
-</style>
-"""
-
-footer_css = """
-<style>
-
-
-.footer {
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    text-align: center;
-    padding: 10px 0;
-    z-index: 999;
-    
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 40px;
-}
-
-.footer a {
-    color: rgb(153, 153, 153);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-
-}
-
-.footer a:hover {
-    text-decoration: underline;
-    color: rgb(255, 197, 138);
-}
-
-</style>
-
-<div class="footer">
-    <a href="https://github.com/ajhenne/chat2playlist" target="_blank">GitHub</a>
-    <a href="https://www.linkedin.com/in/ajhennessy/" target="_blank">LinkedIn</a>
-    <a href="./?v=privacy" target="_blank">Privacy Statement</a>
-</div>
-"""
