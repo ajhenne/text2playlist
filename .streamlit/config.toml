@@ -1,8 +1,9 @@
 [theme]
+base = "light"
 textColor = "rgb(255, 255, 255)"
 backgroundColor = "rgb(46, 46, 46)"
 secondaryBackgroundColor = "rgb(83, 83, 83)"
 primaryColor="rgb(247, 163, 78)"
-borderColor="rgb(255, 197, 138)"
 linkColor = "rgb(255, 197, 138)"
-showWidgetBorder=false
+codeBackgroundColor = "rgb(83, 83, 83)"
+showWidgetBorder=true
