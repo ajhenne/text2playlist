@@ -1,6 +1,6 @@
 [project]
 name = "text2playlist"
-version = "0.1.0"
+version = "1.0.0"
 description = "A set of tools for handling music links and metadata."
 readme = "README.md"
 requires-python = ">=3.12"

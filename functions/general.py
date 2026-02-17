@@ -84,7 +84,7 @@ def url_checker(url):
     return True
 
 
-# @st.cache_data
+@st.cache_data
 def resolve_tracks(link_list):
     """Get a dataframe of results for all inputted links."""
 
@@ -96,7 +96,7 @@ def resolve_tracks(link_list):
     return pd.DataFrame(valid_results)
 
 
-# @st.cache_data
+@st.cache_data
 def odesli_search(url):
     """Find metadata using Odesli API."""
 
@@ -124,6 +124,9 @@ def odesli_search(url):
             if key and not artist:
                 artist = entities[key].get('artistName')
                 
+        if (title is None) and (artist is None):
+            return None
+                
         link_youtube = links.get('youtube', {}).get('url')
         link_spotify = links.get('spotify', {}).get('url')
         # youtubeMusic, soundcloud
@@ -134,7 +137,7 @@ def odesli_search(url):
                 'raw_link': url}
     
     except: 
-        return 
+        return None
     
 
 ###############################################################################
@@ -171,27 +174,27 @@ def display_spotify_list(link_list):
 
 ###############################################################################
 
-def save_permalink(permalink, yt_link):
-    conn = st.connection('gsheets', type=GSheetsConnection)
-    df = conn.read(ttl=0)
+# def save_permalink(permalink, yt_link):
+#     conn = st.connection('gsheets', type=GSheetsConnection)
+#     df = conn.read(ttl=0)
 
-    if permalink in df['permalink'].values:
-        return False
+#     if permalink in df['permalink'].values:
+#         return False
     
-    new_row = pd.DataFrame([{"permalink": permalink, "yt_link": yt_link}])
-    updated_df = pd.concat([df, new_row], ignore_index=True)
+#     new_row = pd.DataFrame([{"permalink": permalink, "yt_link": yt_link}])
+#     updated_df = pd.concat([df, new_row], ignore_index=True)
 
-    conn.update(data=updated_df)
-    return True
+#     conn.update(data=updated_df)
+#     return True
 
 
-def link_from_permalink(permalink):
-    conn = st.connection('gsheets', type=GSheetsConnection)
-    df = conn.read(ttl="10m")
+# def link_from_permalink(permalink):
+#     conn = st.connection('gsheets', type=GSheetsConnection)
+#     df = conn.read(ttl="10m")
 
-    match = df[df['permalink'] == permalink]
+#     match = df[df['permalink'] == permalink]
 
-    if match.empty:
-        return None
+#     if match.empty:
+#         return None
     
-    return match.iloc[0]['yt_link']
+#     return match.iloc[0]['yt_link']

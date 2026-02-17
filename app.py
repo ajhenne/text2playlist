@@ -16,7 +16,7 @@ if "processed_data" not in st.session_state:
         
 st.markdown(custom_css, unsafe_allow_html=True)
 st.markdown(dialog_css, unsafe_allow_html=True)
-st.markdown(footer_css, unsafe_allow_html=True)
+# st.markdown(footer_css, unsafe_allow_html=True)
 
 
 if "p" in st.query_params:
