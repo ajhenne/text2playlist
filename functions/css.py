@@ -2,6 +2,7 @@ custom_css = """
 <style>
 .stMainBlockContainer{
     padding-top: 50px;
+    max-width: 1000px;
 }
 
 .st-emotion-cache-198znwi hr {
