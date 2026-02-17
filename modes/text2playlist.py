@@ -9,11 +9,11 @@ from functions.general import get_icons_html
 ICONS = get_icons_html()
 
 
-def page_chat2playlist():
+def page_text2playlist():
 
-    st.title(":primary[chat2playlist]")
+    st.title(":primary[text2playlist]")
 
-    st.text("Extract music links from a large textfile to easily make into a playlist. Can be output directly into a YouTube playlist, as a list to import into Spotify, or as a list of song and artist names.")
+    st.text("Extract music links from a large textfile. Can be output directly into a YouTube playlist, as a list to import into Spotify, or as a list of song and artist names.")
 
     uploaded_file = st.file_uploader("upload_file", type='txt', label_visibility="collapsed")
     
@@ -21,10 +21,10 @@ def page_chat2playlist():
 
         file_id = uploaded_file.name + str(uploaded_file.size)
 
-        # if st.session_state.processed_data is None or st.session_state.processed_data['id'] != file_id:
-        if True:
+        if st.session_state.processed_data is None or st.session_state.processed_data['id'] != file_id:
+        # if True:
 
-            with st.spinner("Getting track details...", width='stretch'):
+            with st.spinner("Getting track details. This may take up to a minute...", width='stretch'):
 
                 content = uploaded_file.read().decode('utf-8')
                 raw_links = get_link_list(content)
@@ -71,10 +71,13 @@ def page_chat2playlist():
 
         st.subheader(":primary[Tracklist]")
         
-        for row in song_data[['title', 'artist', 'link_youtube', 'link_spotify']].itertuples():
+        for row in song_data.itertuples():
             col_title, col_artist, col_link = st.columns([0.55, 0.35, 0.1])
             with col_title:
-                st.write(row.title)
+                st.write(row.raw_data)
+                
+                # TODO troubleshooting a failed url with no odesli details. need to filter out somewhere
+                # tried to re-add rawurl column need to test why apdnas says no rawdata column. likely just filtered out or somethin somehwre?
             with col_artist:
                 st.write(row.artist)
             with col_link:
