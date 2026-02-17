@@ -130,7 +130,8 @@ def odesli_search(url):
         
         return {'title': title, 'artist': artist,
                 'link_youtube': link_youtube,
-                'link_spotify': link_spotify}
+                'link_spotify': link_spotify,
+                'raw_link': url}
     
     except: 
         return 
@@ -142,7 +143,9 @@ def odesli_search(url):
 def generate_youtube_link(link_list):
     """Convert a list of links into a YouTube temporary playlist link."""
     video_ids = []
-
+    
+    link_list = [x for x in link_list if x is not None]
+    
     for url in link_list:
 
         if "v=" in url:
