@@ -2,7 +2,7 @@ import streamlit as st
 import secrets
 import string
 from functions.general import get_link_list, url_checker, resolve_tracks, generate_youtube_link, display_spotify_list
-from functions.general import save_permalink, make_table_links
+from functions.general import make_table_links
 
 from functions.general import get_icons_html
 
@@ -80,7 +80,6 @@ def page_text2playlist():
             for row in song_data.itertuples():
                 col_title, col_artist, col_link = st.columns([0.55, 0.35, 0.1])
                 with col_title:
-                    # st.write(row.raw_link)
                     st.write(row.title)
                 with col_artist:
                     st.write(row.artist)
