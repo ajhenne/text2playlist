@@ -84,7 +84,7 @@ def url_checker(url):
     return True
 
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def resolve_tracks(link_list):
     """Get a dataframe of results for all inputted links."""
 
@@ -96,7 +96,7 @@ def resolve_tracks(link_list):
     return pd.DataFrame(valid_results)
 
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def odesli_search(url):
     """Find metadata using Odesli API."""
 
@@ -142,7 +142,6 @@ def odesli_search(url):
 
 ###############################################################################
 
-# @st.cache_data
 def generate_youtube_link(link_list):
     """Convert a list of links into a YouTube temporary playlist link."""
     video_ids = []
