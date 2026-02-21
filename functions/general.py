@@ -158,15 +158,26 @@ def generate_youtube_link(link_list):
     return f"https://www.youtube.com/watch_videos?video_ids={','.join(video_ids)}"
 
 
-@st.dialog(":primary[Spotify]", width="medium")
-def display_spotify_list(link_list):
+@st.dialog(":primary[Spotify]", width='medium')
+def display_spotify_list(link_list, total_count):
     
-    st.text("Copy this list and open the Spotify Desktop app or Spotify Web. Make a new playlist, or go to an existing playlist, and click paste (Ctrl+V or Cmd+V) to paste the tracks int othe playlist.")
+    st.text(f"Links for the {len(link_list)}/{total_count} tracks that are available in Spotify.")
+    st.text("Copy this list and open the Spotify Desktop app or Spotify Web. Make a new playlist, or go to an existing playlist, and click paste (Ctrl+V or Cmd+V) to put the tracks into the playlist.")
     display_list = "\n".join(link_list.dropna().astype(str))
-    st.code(display_list, language=None, width='stretch', height=300)
+    st.code(display_list, language=None, width='stretch', height=500)
     
     return
 
+
+@st.dialog(":primary[Youtube Playlists]", width='medium')
+def display_youtube_links(list_of_playlists):
+    
+    st.text("Unfortunately, Youtube only supports temporary playlists of only up to 50 songs. Each button below will take you to each batch of songs, in order from oldest to most recent.")
+    
+    for enum, playlist in enumerate(list_of_playlists):
+        enum += 1
+        st.link_button(f"Playlist #{enum}", playlist, width='stretch', type='primary')
+        
 
 
 

@@ -1,7 +1,7 @@
 import streamlit as st
 import secrets
 import string
-from functions.general import get_link_list, url_checker, resolve_tracks, generate_youtube_link, display_spotify_list
+from functions.general import get_link_list, url_checker, resolve_tracks, generate_youtube_link, display_spotify_list, display_youtube_links
 from functions.general import make_table_links
 
 from functions.general import get_icons_html
@@ -40,6 +40,7 @@ def page_text2playlist():
         data = st.session_state.processed_data
         song_data = data['song_data']
         
+        
         if not len(song_data):
             st.markdown(":red[**ERROR:**] No valid music links could be found in this file.")
             st.markdown("The links may be playlist or album links, which are not currently supported, \
@@ -48,11 +49,33 @@ def page_text2playlist():
                 submit an issue on the [GitHub](https://github.com/ajhenne/chat2playlist).")
             return
         
-        youtube_link = generate_youtube_link(song_data['link_youtube'])
         
-        st.link_button("YouTube", youtube_link, width='stretch')
-        if st.button("Spotify", '1', width='stretch'):
-            display_spotify_list(song_data['link_spotify'])
+        #################################################################################################
+        ## LINK PRESENTING
+        
+        all_youtube_links = song_data[song_data['link_youtube'].notna()]['link_youtube']
+        
+        if len(all_youtube_links) <= 50:  
+            youtube_link = generate_youtube_link(all_youtube_links)
+            st.link_button("YouTube", youtube_link, use_container_width=True)
+            
+        else:
+            list_of_youtube_links = []
+
+            for i in range(0, len(all_youtube_links), 50):
+                batch = all_youtube_links.iloc[i : i + 50]
+                batch_link = generate_youtube_link(batch)
+                list_of_youtube_links.append(batch_link)
+
+            if st.button("YouTube", width='stretch'):
+                display_youtube_links(list_of_youtube_links)
+        
+        
+        if st.button("Spotify", width='stretch'):
+            display_spotify_list(song_data['link_spotify'], st.session_state.processed_data['raw_count'])
+            
+            
+        #################################################################################################
         
         # col_clipboard, col_permalink = st.columns([0.5, 0.5], vertical_alignment='center')
         # with col_clipboard:
@@ -67,8 +90,11 @@ def page_text2playlist():
         #             st.code(final_url, language=None)
         #         else:
         #             st.error("error")
+    
+    
+        #################################################################################################
+        ## TRACKLIST
 
-        
         with st.container(border=True):
             st.subheader(":primary[Tracklist]")
             
@@ -86,7 +112,6 @@ def page_text2playlist():
                 with col_link:
                     st.markdown(f"{make_table_links(row.link_youtube, row.link_spotify, ICONS)}", unsafe_allow_html=True)     
                 
-        # TODO - what if >50 songs for YT?
         # TODO - permalink
         
     else:
