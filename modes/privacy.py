@@ -5,7 +5,7 @@ from functions.services import record_pageview
 
 def page_privacy():
 
-    record_pageview()
+    record_pageview('/text2playlist/privacy')
 
     st.title(":primary[Privacy Statement]")
 
@@ -16,6 +16,6 @@ def page_privacy():
              
             External services:
             - This tool is built on Streamlit. You may view their [privacy policy](https://streamlit.io/privacy-policy) to see how they handle data.
-            - Odseli API is used to convert links between different services and/or obtain song metadata. Only the extracted music is sent to their API.
+            - [Odseli API](https://odesli.co) is used to convert links between different services and/or obtain song metadata. Only the extracted music URLs are sent to their API.
             - Google Sheets is used as a database to store permalink IDs and playlist information.
             """)

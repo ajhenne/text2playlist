@@ -11,8 +11,7 @@ def get_svg_html(path):
     return f'<img src="data:image/svg+xml;base64,{base64_svg}" width="25">'
 
 
-def record_pageview():
-
+def record_pageview(page_path):
     headers = st.context.headers
 
     user_agent = headers.get("User-Agent", "Streamlit-App")
@@ -25,8 +24,8 @@ def record_pageview():
         "no_sessions": False,
         "hits": [
             {
-                "path": st.context.path or "/",  # Current page path
-                "title": "My Streamlit App",
+                "path": page_path,
+                "title": page_path.strip("/").replace("-", " ").title(),
                 "event": False,
                 "ip": ip,
                 "user_agent": user_agent,
