@@ -6,56 +6,62 @@ import base64
 
 from concurrent.futures import ThreadPoolExecutor
 
-from streamlit_gsheets import GSheetsConnection
+# from streamlit_gsheets import GSheetsConnection
 
 ###############################################################################
 ### ICONS
 
+
 def get_icons_html():
     """Get HTML from svgs for coloured and greyed icons."""
-    
+
     output_html = []
-    
-    for svc in ('youtube', 'spotify', 'soundcloud'):
-        with open(f'assets/{svc}.svg', 'rb') as f:
+
+    for svc in ("youtube", "spotify", "soundcloud"):
+        with open(f"assets/{svc}.svg", "rb") as f:
             base64_svg = base64.b64encode(f.read()).decode("utf-8")
             coloured = f'<img src="data:image/svg+xml;base64,{base64_svg}" width="25">'
-            
-        with open(f'assets/{svc}_grey.svg', 'rb') as f:
+
+        with open(f"assets/{svc}_grey.svg", "rb") as f:
             base64_svg = base64.b64encode(f.read()).decode("utf-8")
             grey = f'<img src="data:image/svg+xml;base64,{base64_svg}" width="25">'
-        
+
         output_html.append([coloured, grey])
-        
+
     return output_html
 
 
 def make_table_links(link_youtube, link_spotify, icons):
     """Create table row of links for a song."""
-    
+
     icon_youtube, icon_spotify, _ = icons
-     
+
     if link_youtube:
-        output_youtube = f'<a href="{link_youtube}" target="_blank">{icon_youtube[0]}</a>'
+        output_youtube = (
+            f'<a href="{link_youtube}" target="_blank">{icon_youtube[0]}</a>'
+        )
     else:
         output_youtube = icon_youtube[1]
-        
+
     if link_spotify:
-        output_spotify = f'<a href="{link_spotify}" target="_blank">{icon_spotify[0]}</a>'
+        output_spotify = (
+            f'<a href="{link_spotify}" target="_blank">{icon_spotify[0]}</a>'
+        )
     else:
         output_spotify = icon_spotify[1]
-        
-    return f'{output_youtube}&nbsp;{output_spotify}'
-    
+
+    return f"{output_youtube}&nbsp;{output_spotify}"
+
 
 ###############################################################################
 ### LINK PROCESSING
 
+
 def get_link_list(text):
     """Get URLs from text and output in specified format."""
 
-    url_pattern = r'(https?://[^\s]+)'
-    link_list = re.findall(url_pattern, text)    
+    url_pattern = r"(https?://[^\s]+)"
+    link_list = re.findall(url_pattern, text)
 
     return link_list
 
@@ -65,20 +71,30 @@ def url_checker(url):
     u = url.lower()
 
     # quick guard clase - need to manually verify links to add more services
-    music_services = ["youtube.com", "youtu.be", "spotify.com", "soundcloud.com", "music.apple.com"]
+    music_services = [
+        "youtube.com",
+        "youtu.be",
+        "spotify.com",
+        "soundcloud.com",
+        "music.apple.com",
+    ]
     if not any(service in u for service in music_services):
         return False
 
     if "youtube.com/playlist" in u:
         return False
-    
-    if "music.apple.com" in u and ("album" in u and "?i=" not in u): #album ok if it points to track
-        return False 
-    
+
+    if "music.apple.com" in u and (
+        "album" in u and "?i=" not in u
+    ):  # album ok if it points to track
+        return False
+
     if "spotify.com" in u and "track" not in u:
         return False
-    
-    if "soundcloud.com" in u and ("sets" in u and "?in=" not in u): # sets(album) ok if it points to track
+
+    if "soundcloud.com" in u and (
+        "sets" in u and "?in=" not in u
+    ):  # sets(album) ok if it points to track
         return False
 
     return True
@@ -90,7 +106,7 @@ def resolve_tracks(link_list):
 
     with ThreadPoolExecutor(max_workers=10) as executor:
         results = list(executor.map(odesli_search, link_list))
-        
+
     valid_results = [r for r in results if r is not None]
 
     return pd.DataFrame(valid_results)
@@ -104,52 +120,57 @@ def odesli_search(url):
         response = requests.get(f"https://api.song.link/v1-alpha.1/links?url={url}")
         if response.status_code != 200:
             return None
-        
+
         data = response.json()
-        
-        entities = data.get('entitiesByUniqueId', {})
-        links = data.get('linksByPlatform', {})
-        
+
+        entities = data.get("entitiesByUniqueId", {})
+        links = data.get("linksByPlatform", {})
+
         title = None
         artist = None
-        
+
         spotify_key = next((k for k in entities if k.startswith("SPOTIFY_SONG")), None)
-        soundcloud_key = next((k for k in entities if k.startswith("SOUNDCLOUD_SONG")), None)
+        soundcloud_key = next(
+            (k for k in entities if k.startswith("SOUNDCLOUD_SONG")), None
+        )
         youtube_key = next((k for k in entities if k.startswith("YOUTUBE_VIDEO")), None)
-                
+
         # prefer spotify -> soundcloud -> youtube for name & artist metadata
         for key in [spotify_key, soundcloud_key, youtube_key]:
             if key and not title:
-                title = entities[key].get('title')
+                title = entities[key].get("title")
             if key and not artist:
-                artist = entities[key].get('artistName')
-                
+                artist = entities[key].get("artistName")
+
         if (title is None) and (artist is None):
             return None
-                
-        link_youtube = links.get('youtube', {}).get('url')
-        link_spotify = links.get('spotify', {}).get('url')
+
+        link_youtube = links.get("youtube", {}).get("url")
+        link_spotify = links.get("spotify", {}).get("url")
         # youtubeMusic, soundcloud
-        
-        return {'title': title, 'artist': artist,
-                'link_youtube': link_youtube,
-                'link_spotify': link_spotify,
-                'raw_link': url}
-    
-    except: 
+
+        return {
+            "title": title,
+            "artist": artist,
+            "link_youtube": link_youtube,
+            "link_spotify": link_spotify,
+            "raw_link": url,
+        }
+
+    except Exception:
         return None
-    
+
 
 ###############################################################################
+
 
 def generate_youtube_link(link_list):
     """Convert a list of links into a YouTube temporary playlist link."""
     video_ids = []
-    
-    link_list = [x for x in link_list if x is not None]
-    
-    for url in link_list:
 
+    link_list = [x for x in link_list if x is not None]
+
+    for url in link_list:
         if "v=" in url:
             video_ids.append(url.split("v=")[1].split("&")[0])
         elif "youtu.be/" in url:
@@ -158,28 +179,31 @@ def generate_youtube_link(link_list):
     return f"https://www.youtube.com/watch_videos?video_ids={','.join(video_ids)}"
 
 
-@st.dialog(":primary[Spotify]", width='medium')
+@st.dialog(":primary[Spotify]", width="medium")
 def display_spotify_list(link_list, total_count):
-    
-    st.text(f"Links for the {len(link_list)}/{total_count} tracks that are available in Spotify.")
-    st.text("Copy this list and open the Spotify Desktop app or Spotify Web. Make a new playlist, or go to an existing playlist, and click paste (Ctrl+V or Cmd+V) to put the tracks into the playlist.")
+
+    st.text(
+        f"Links for the {len(link_list)}/{total_count} tracks that are available in Spotify."
+    )
+    st.text(
+        "Copy this list and open the Spotify Desktop app or Spotify Web. Make a new playlist, or go to an existing playlist, and click paste (Ctrl+V or Cmd+V) to put the tracks into the playlist."
+    )
     display_list = "\n".join(link_list.dropna().astype(str))
-    st.code(display_list, language=None, width='stretch', height=500)
-    
+    st.code(display_list, language=None, width="stretch", height=500)
+
     return
 
 
-@st.dialog(":primary[Youtube Playlists]", width='medium')
+@st.dialog(":primary[Youtube Playlists]", width="medium")
 def display_youtube_links(list_of_playlists):
-    
-    st.text("Unfortunately, Youtube only supports temporary playlists of only up to 50 songs. Each button below will take you to each batch of songs, in order from oldest to most recent.")
-    
+
+    st.text(
+        "Unfortunately, Youtube only supports temporary playlists of only up to 50 songs. Each button below will take you to each batch of songs, in order from oldest to most recent."
+    )
+
     for enum, playlist in enumerate(list_of_playlists):
         enum += 1
-        st.link_button(f"Playlist #{enum}", playlist, width='stretch', type='primary')
-        
-
-
+        st.link_button(f"Playlist #{enum}", playlist, width="stretch", type="primary")
 
 
 ###############################################################################
@@ -190,7 +214,7 @@ def display_youtube_links(list_of_playlists):
 
 #     if permalink in df['permalink'].values:
 #         return False
-    
+
 #     new_row = pd.DataFrame([{"permalink": permalink, "yt_link": yt_link}])
 #     updated_df = pd.concat([df, new_row], ignore_index=True)
 
@@ -206,5 +230,5 @@ def display_youtube_links(list_of_playlists):
 
 #     if match.empty:
 #         return None
-    
+
 #     return match.iloc[0]['yt_link']
