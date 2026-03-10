@@ -16,7 +16,7 @@ ICONS = get_icons_html()
 
 def page_text2playlist():
 
-    record_pageview('/text2playlist')
+    record_pageview()
 
     st.title(":primary[text2playlist]")
 

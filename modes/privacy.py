@@ -5,7 +5,7 @@ from functions.services import record_pageview
 
 def page_privacy():
 
-    record_pageview('/text2playlist/privacy')
+    record_pageview()
 
     st.title(":primary[Privacy Statement]")
 
