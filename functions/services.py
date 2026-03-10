@@ -11,14 +11,23 @@ def get_svg_html(path):
     return f'<img src="data:image/svg+xml;base64,{base64_svg}" width="25">'
 
 
-def record_pageview(page_path):
-    headers = st.context.headers
+def record_pageview():
 
+    query_ref = st.query_params.get("ref", None)
+
+    headers = st.context.headers
     user_agent = headers.get("User-Agent", "Streamlit-App")
+
     ip = headers.get("X-Forwarded-For", "0.0.0.0").split(",")[0]
+    if not ip or ip == "0.0.0.0":
+        ip = st.context.ip_address
 
     url = "https://ajhenne.goatcounter.com/api/v0/count"
     token = st.secrets["goatcounter_key"]
+
+    page_path = st.context.url.replace(st.context.headers.get("Host", ""), "").split(
+        "?"
+    )[0]
 
     payload = {
         "no_sessions": False,
@@ -29,6 +38,7 @@ def record_pageview(page_path):
                 "event": False,
                 "ip": ip,
                 "user_agent": user_agent,
+                "referrer": query_ref or headers.get("Referer", ""),
             }
         ],
     }
