@@ -30,6 +30,7 @@ footer_css = """
     left: 0;
     bottom: 0;
     width: 100%;
+    height: 30px;
     background: rgb(247, 163, 78);
     text-align: center;
     padding: 10px 0;
@@ -46,6 +47,7 @@ footer_css = """
     text-decoration: none;
     display: flex;
     align-items: center;
+    font-size: 12px;
 
 }
 
