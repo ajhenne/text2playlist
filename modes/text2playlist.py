@@ -1,64 +1,80 @@
 import streamlit as st
-import secrets
-import string
-from functions.general import get_link_list, url_checker, resolve_tracks, generate_youtube_link, display_spotify_list, display_youtube_links
+from functions.general import (
+    get_link_list,
+    url_checker,
+    resolve_tracks,
+    generate_youtube_link,
+    display_spotify_list,
+    display_youtube_links,
+)
 from functions.general import make_table_links
-
 from functions.general import get_icons_html
+from functions.services import record_pageview
 
 ICONS = get_icons_html()
 
 
 def page_text2playlist():
 
+    record_pageview()
+
     st.title(":primary[text2playlist]")
 
-    st.text("Extract music links from a large textfile. Can be output directly into a YouTube playlist, as a list to import into Spotify, or as a list of song and artist names.")
+    st.text(
+        "Extract music links from a large textfile. Can be output directly into a YouTube playlist, as a list to import into Spotify, or as a list of song and artist names."
+    )
 
-    uploaded_file = st.file_uploader("upload_file", type='txt', label_visibility="collapsed")
-    
+    uploaded_file = st.file_uploader(
+        "upload_file", type="txt", label_visibility="collapsed"
+    )
+
     if uploaded_file:
-
         file_id = uploaded_file.name + str(uploaded_file.size)
 
-        if st.session_state.processed_data is None or st.session_state.processed_data['id'] != file_id:
-
-            with st.spinner("Getting track details. This may take up to a minute...", width='stretch'):
-
-                content = uploaded_file.read().decode('utf-8')
+        if (
+            st.session_state.processed_data is None
+            or st.session_state.processed_data["id"] != file_id
+        ):
+            with st.spinner(
+                "Getting track details. This may take up to a minute...",
+                width="stretch",
+            ):
+                content = uploaded_file.read().decode("utf-8")
                 raw_links = get_link_list(content)
                 link_list = [url for url in raw_links if url_checker(url)]
                 data = resolve_tracks(link_list)
 
                 st.session_state.processed_data = {
-                    'id': file_id,
-                    'song_data': data,
-                    'song_count': len(data),
-                    'raw_count': len(raw_links),
+                    "id": file_id,
+                    "song_data": data,
+                    "song_count": len(data),
+                    "raw_count": len(raw_links),
                 }
-                
+
         data = st.session_state.processed_data
-        song_data = data['song_data']
-        
-        
+        song_data = data["song_data"]
+
         if not len(song_data):
-            st.markdown(":red[**ERROR:**] No valid music links could be found in this file.")
-            st.markdown("The links may be playlist or album links, which are not currently supported, \
+            st.markdown(
+                ":red[**ERROR:**] No valid music links could be found in this file."
+            )
+            st.markdown(
+                "The links may be playlist or album links, which are not currently supported, \
                 rather than indvidual links. Or, the music service may not be currently supported. If \
                 you would like a music service supported, or you think an error has occurred, please  \
-                submit an issue on the [GitHub](https://github.com/ajhenne/chat2playlist).")
+                submit an issue on the [GitHub](https://github.com/ajhenne/chat2playlist)."
+            )
             return
-        
-        
+
         #################################################################################################
         ## LINK PRESENTING
-        
-        all_youtube_links = song_data[song_data['link_youtube'].notna()]['link_youtube']
-        
-        if len(all_youtube_links) <= 50:  
+
+        all_youtube_links = song_data[song_data["link_youtube"].notna()]["link_youtube"]
+
+        if len(all_youtube_links) <= 50:
             youtube_link = generate_youtube_link(all_youtube_links)
             st.link_button("YouTube", youtube_link, use_container_width=True)
-            
+
         else:
             list_of_youtube_links = []
 
@@ -67,16 +83,16 @@ def page_text2playlist():
                 batch_link = generate_youtube_link(batch)
                 list_of_youtube_links.append(batch_link)
 
-            if st.button("YouTube", width='stretch'):
+            if st.button("YouTube", width="stretch"):
                 display_youtube_links(list_of_youtube_links)
-        
-        
-        if st.button("Spotify", width='stretch'):
-            display_spotify_list(song_data['link_spotify'], st.session_state.processed_data['raw_count'])
-            
-            
+
+        if st.button("Spotify", width="stretch"):
+            display_spotify_list(
+                song_data["link_spotify"], st.session_state.processed_data["raw_count"]
+            )
+
         #################################################################################################
-        
+
         # col_clipboard, col_permalink = st.columns([0.5, 0.5], vertical_alignment='center')
         # with col_clipboard:
         #     st.button("Copy to clipboard", use_container_width=True)
@@ -90,19 +106,21 @@ def page_text2playlist():
         #             st.code(final_url, language=None)
         #         else:
         #             st.error("error")
-    
-    
+
         #################################################################################################
         ## TRACKLIST
 
         with st.container(border=True):
             st.subheader(":primary[Tracklist]")
-            
+
             col1, col2, col3 = st.columns([0.55, 0.35, 0.1])
-            with col1: st.markdown(":primary[Title]")
-            with col2: st.markdown(":primary[Artist]")
-            with col3: st.markdown(":primary[Links]")
-            
+            with col1:
+                st.markdown(":primary[Title]")
+            with col2:
+                st.markdown(":primary[Artist]")
+            with col3:
+                st.markdown(":primary[Links]")
+
             for row in song_data.itertuples():
                 col_title, col_artist, col_link = st.columns([0.55, 0.35, 0.1])
                 with col_title:
@@ -110,9 +128,12 @@ def page_text2playlist():
                 with col_artist:
                     st.write(row.artist)
                 with col_link:
-                    st.markdown(f"{make_table_links(row.link_youtube, row.link_spotify, ICONS)}", unsafe_allow_html=True)     
-                
+                    st.markdown(
+                        f"{make_table_links(row.link_youtube, row.link_spotify, ICONS)}",
+                        unsafe_allow_html=True,
+                    )
+
         # TODO - permalink
-        
+
     else:
         return
