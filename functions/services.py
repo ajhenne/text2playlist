@@ -25,7 +25,7 @@ def record_pageview(path: str = ""):
     url = "https://ajhenne.goatcounter.com/api/v0/count"
     token = st.secrets["goatcounter_key"]
 
-    page_path = "text2playlist"
+    page_path = "/text2playlist"
     page_title = "text2playlist"
     if path:
         page_path += "/" + path
