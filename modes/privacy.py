@@ -5,7 +5,7 @@ from functions.services import record_pageview
 
 def page_privacy():
 
-    record_pageview()
+    record_pageview('privacy')
 
     st.title(":primary[Privacy Statement]")
 
